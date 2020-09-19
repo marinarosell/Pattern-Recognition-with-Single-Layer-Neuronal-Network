@@ -1,0 +1,153 @@
+---
+title: "Computacional study"
+author: "Marina Rosell i Pau Lozano"
+date: "6/5/2020"
+output: html_document
+---
+
+
+Carreguem les dades generades pel codi de matlab
+```{r}
+X <- read.csv("uo_nn_batch_49784363-54409254.csv", sep=';', row.names=NULL, header = TRUE)
+X <- X[,-9]
+colnames(X) <- c('num_target', 'la', 'isd', 'niter', 'tex', 'tr_acc', 'te_acc', 'L*')
+
+X$num_target <- as.numeric(X$num_target)
+X[1:18,]
+```
+
+Separem les dades segons la λ per obtenir representacions gràfiques
+```{r}
+la0 <- X[X$la == 0,] 
+col<- rep("black",nrow(la0))
+col[la0$isd == 1] <- "red"
+col[la0$isd == 3] <- "dodgerblue"
+col[la0$isd == 7] <- "green3"
+la1 <- X[X$la == 1,] 
+la10 <- X[X$la == 10,] 
+```
+
+###1. Convergence of the algorithms
+##### Convergència global - Número d'iteracions
+```{r}
+par(mfrow=c(2,2))
+
+plot(la0$num_target ,la0$niter, col = col, cex=c(1.7,1.3,1.3), ylab="Número d'iteracions", xlab="", main="λ=0", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la1$num_target ,la1$niter, col = col, cex=c(1.7,1.3,1.3), ylab="Número d'iteracions", xlab="", main="λ=1", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la10$num_target ,la10$niter, col = col, cex=c(1.7,1.3,1.3), ylab="Número d'iteracions", xlab="", main="λ=10", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+legend("right", legend = c("GM","QNM","SGM"), col = c("red","dodgerblue", "green3"), cex=1, pch=c(1,2,3),xpd=NA, inset=c(-1,0))
+```
+
+##### Funció objectiu L*
+```{r}
+par(mfrow=c(2,2))
+
+plot(la0$num_target ,la0$`L*`, col = col, cex=c(1.7,1.3,1.3), ylab="Funció objectiu L*", xlab="", main="λ=0", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la1$num_target ,la1$`L*`, col = col, cex=c(1.7,1.3,1.3), ylab="Funció objectiu L*", xlab="", main="λ=1", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la10$num_target ,la10$`L*`, col = col, cex=c(1.7,1.3,1.3), ylab="Funció objectiu L*", xlab="", main="λ=10", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+legend("right", legend = c("GM","QNM","SGM"), col = c("red","dodgerblue", "green3"), cex=1, pch=c(1,2,3),xpd=NA, inset=c(-1,0))
+```
+
+##### Convergència local - Temps d'execució
+```{r}
+par(mfrow=c(2,2))
+
+plot(la0$num_target ,la0$tex, col = col, cex=c(1.7,1.3,1.3), ylab="Temps d'execució", xlab="", main="λ=0", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la1$num_target ,la1$tex, col = col, cex=c(1.7,1.3,1.3), ylab="Temps d'execució", xlab="", main="λ=1", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+plot(la10$num_target ,la10$tex, col = col, cex=c(1.7,1.3,1.3), ylab="Temps d'execució", xlab="", main="λ=10", pch=c(1,2,3))
+axis(side=1, labels=NULL, at=0:9)
+grid(10)
+
+legend("right", legend = c("GM","QNM","SGM"), col = c("red","dodgerblue", "green3"), cex=1, pch=c(1,2,3),xpd=NA, inset=c(-1,0))
+```
+
+Comparativa detallada del temps d'execució de Quasi Newton amb λ=1 i λ=10
+```{r}
+la1qn <- la1[la1$isd==3,]
+la10qn <- la10[la10$isd==3,]
+la1qn$tex
+la10qn$tex
+```
+
+
+### 2. Recognition accuracy
+
+##### Training accuracy
+
+```{r}
+leg_tr <- function(la)
+{
+  axis(side=1, labels=NULL, at=0:9)
+  grid(10)
+  leg_gm <- paste("GM (", mean(la[la$isd==1,]$tr_acc),")", sep="")
+  leg_qnm <- paste("QNM (",mean(la[la0$isd==3,]$tr_acc),")", sep="")
+  leg_sgm <- paste("SGM (",mean(la[la0$isd==7,]$tr_acc),")", sep="")
+  legend("bottom", legend = c(leg_gm,leg_qnm,leg_sgm), col = c("red","dodgerblue", "green3"), cex=.9, pch=c(1,2,3),xpd=NA, inset=c(0,-0.7), horiz=TRUE)
+}
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(la0$num_target ,la0$tr_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Training Accuracy", xlab="", main="λ=0", pch=c(1,2,3))
+leg_tr(la0)
+
+plot(la1$num_target ,la1$tr_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Training Accuracy", xlab="", main="λ=1", pch=c(1,2,3))
+leg_tr(la1)
+
+plot(la10$num_target ,la10$tr_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Training Accuracy", xlab="", main="λ=10", pch=c(1,2,3))
+leg_tr(la10)
+```
+
+
+##### Testing accuracy
+```{r}
+leg_te <- function(la)
+{
+  axis(side=1, labels=NULL, at=0:9)
+  grid(10)
+  leg_gm <- paste("GM (", mean(la[la$isd==1,]$te_acc),")", sep="")
+  leg_qnm <- paste("QNM (",mean(la[la0$isd==3,]$te_acc),")", sep="")
+  leg_sgm <- paste("SGM (",mean(la[la0$isd==7,]$te_acc),")", sep="")
+  legend("bottom", legend = c(leg_gm,leg_qnm,leg_sgm), col = c("red","dodgerblue", "green3"), cex=.9, pch=c(1,2,3),xpd=NA, inset=c(0,-0.7), horiz=TRUE)
+}
+```
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(la0$num_target ,la0$te_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Testing Accuracy", xlab="", main="λ=0", pch=c(1,2,3))
+leg_te(la0)
+
+plot(la1$num_target ,la1$te_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Testing Accuracy", xlab="", main="λ=1", pch=c(1,2,3))
+leg_te(la1)
+
+plot(la10$num_target ,la10$te_acc, col = col, cex=c(1.7,1.3,1.3), ylab="Testing Accuracy", xlab="", main="λ=10", pch=c(1,2,3))
+leg_te(la10)
+```
+
+
